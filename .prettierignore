@@ -1,0 +1,23 @@
+# dependencies
+node_modules
+
+# build outputs
+dist
+build
+coverage
+
+# env files
+.env
+.env.*
+
+# lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# misc
+.next
+.out
+
+# ignore README
+README.md
