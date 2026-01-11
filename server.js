@@ -24,7 +24,10 @@ app.use(
     credentials: true,
   })
 );
-
+/* ---------------- ROUTES ---------------- */
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
 app.use("/auth", authRoutes);
 app.use("/blog", blogRoutes);
 app.use("/comment", commentRoutes);
