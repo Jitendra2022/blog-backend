@@ -15,6 +15,12 @@ const CommentSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    parentComment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comments",
+      // top-level comment
+      default: null,
+    },
   },
   { timestamps: true }
 );

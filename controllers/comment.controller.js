@@ -3,33 +3,55 @@ import { Comments } from "../models/comments.model.js";
 
 const addComment = async (req, res) => {
   try {
-    const { postId, comment } = req.body;
-    const newComment = await Comments.create({
-      postId,
-      userId: req.user._id,
-      comment,
-    });
-    await newComment.save();
+    const { postId, comment, parentComment } = req.body;
+
+    // Check post
     const existPost = await Blog.findById(postId);
     if (!existPost) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
         message: "Blog post not found!",
       });
     }
-    existPost.comments.push(newComment._id);
-    await existPost.save();
+
+    // Optional: Validate parent comment
+    if (parentComment) {
+      const parent = await Comments.findById(parentComment);
+      if (!parent) {
+        return res.status(404).json({
+          success: false,
+          message: "Parent comment not found!",
+        });
+      }
+    }
+
+    const newComment = await Comments.create({
+      postId,
+      userId: req.user._id,
+      comment,
+      parentComment: parentComment || null,
+    });
+
+    // Only push top-level comments to blog
+    if (!parentComment) {
+      existPost.comments.push(newComment._id);
+      await existPost.save();
+    }
+
     return res.status(201).json({
       success: true,
-      message: "Comment added successfully!",
+      message: parentComment
+        ? "Reply added successfully!"
+        : "Comment added successfully!",
       comment: newComment,
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return res.status(500).json({
       success: false,
-      message: "something went wrong!",
+      message: "Something went wrong!",
     });
   }
 };
+
 export { addComment };
