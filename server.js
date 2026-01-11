@@ -13,12 +13,18 @@ const PORT = process.env.PORT || 8888;
 app.use("/uploads", express.static("uploads"));
 app.use(express.json());
 app.use(morgan("dev"));
+const allowedOrigins = [
+  "https://cors-prettier-crud-app-frontend.vercel.app",
+  "https://cors-prettier-crud-app-backend.vercel.app",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173", // your Vite frontend
-    credentials: true, // allow cookies/session
+    origin: allowedOrigins,
+    credentials: true,
   })
 );
+
 app.use("/auth", authRoutes);
 app.use("/blog", blogRoutes);
 app.use("/comment", commentRoutes);
