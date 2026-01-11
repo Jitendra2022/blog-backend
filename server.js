@@ -9,14 +9,9 @@ import commentRoutes from "./routes/comment.route.js";
 import publicRoutes from "./routes/public.route.js";
 const app = express();
 const PORT = process.env.PORT || 8888;
-// Simple way to serve uploads folder
-app.use("/uploads", express.static("uploads"));
 app.use(express.json());
 app.use(morgan("dev"));
-const allowedOrigins = [
-  "https://blog-frontend-wine-five.vercel.app",
-  "https://cors-prettier-crud-app-backend.vercel.app",
-];
+const allowedOrigins = ["https://blog-frontend-wine-five.vercel.app", "https://blog-backend-lake-eight.vercel.app"];
 
 app.use(
   cors({

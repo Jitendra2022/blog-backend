@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import { User } from "../models/user.model.js";
 import { comparePassword, hashPassword } from "../utils/password.util.js";
 import {
@@ -9,44 +7,50 @@ import {
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "all fileds are required!",
+        message: "All fields are required!",
       });
     }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      // If file was uploaded, remove it
-      if (req.file) {
-        fs.unlinkSync(path.join("uploads/images", req.file.filename));
-      }
       return res.status(400).json({
         success: false,
-        message: "Email already exist please enter another email!",
+        message: "Email already exists, please use another email!",
       });
     }
-    const hashed = await hashPassword(password);
-    const imagePath = req.file.filename;
+
+    const hashedPassword = await hashPassword(password);
+
+    // ✅ Cloudinary image URL
+    const profileImage = req.file
+      ? req.file.path // Cloudinary secure URL
+      : null;
+
     const newUser = await User.create({
       name,
       email,
-      password: hashed,
-      profile: imagePath,
+      password: hashedPassword,
+      profile: profileImage,
     });
+
     return res.status(201).json({
       success: true,
-      message: "Registration successfully!",
+      message: "Registration successful!",
       user: newUser,
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     return res.status(500).json({
       success: false,
-      message: "something went wrong!",
+      message: "Something went wrong!",
     });
   }
 };
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
