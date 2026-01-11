@@ -14,7 +14,7 @@ app.use("/uploads", express.static("uploads"));
 app.use(express.json());
 app.use(morgan("dev"));
 const allowedOrigins = [
-  "https://cors-prettier-crud-app-frontend.vercel.app",
+  "http://localhost:5173/",
   "https://cors-prettier-crud-app-backend.vercel.app",
 ];
 
