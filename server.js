@@ -11,8 +11,9 @@ const app = express();
 const PORT = process.env.PORT || 8888;
 app.use(express.json());
 app.use(morgan("dev"));
-const allowedOrigins = ["https://blog-frontend-wine-five.vercel.app", "https://blog-backend-lake-eight.vercel.app"];
-
+const allowedOrigins = [
+  "http://localhost:5173"
+];
 app.use(
   cors({
     origin: allowedOrigins,
