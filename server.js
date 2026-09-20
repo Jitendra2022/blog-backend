@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 8888;
 app.use(express.json());
 app.use(morgan("dev"));
 const allowedOrigins = [
-  "https://api.jitendra.sbs/"
+  "https://api.jitendra.sbs", "http://localhost:5173"
 ];
 app.use(
   cors({
