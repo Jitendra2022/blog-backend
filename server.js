@@ -2,7 +2,7 @@ import express from "express";
 import "dotenv/config";
 import morgan from "morgan";
 import cors from "cors";
-import connectDB from "./database/db.js";
+import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.route.js";
 import blogRoutes from "./routes/blog.route.js";
 import commentRoutes from "./routes/comment.route.js";
@@ -11,9 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 8888;
 app.use(express.json());
 app.use(morgan("dev"));
-const allowedOrigins = [
-  "https://www.jitendra.sbs"
-];
+const allowedOrigins = ["https://www.jitendra.sbs"];
 app.use(
   cors({
     origin: allowedOrigins,
