@@ -1,5 +1,6 @@
 import { Blog } from "../models/blog.model.js";
 import { Comments } from "../models/comments.model.js";
+import { getFileUrl } from "../services/s3.service.js";
 
 const getSinglePost = async (req, res) => {
   try {
@@ -14,35 +15,53 @@ const getSinglePost = async (req, res) => {
       });
     }
 
-    // 2️⃣ Get all comments of this post
+    // 2️⃣ Convert post S3 image key → Signed URL
+    if (post.image) {
+      post.image = await getFileUrl(post.image);
+    }
+
+    // 3️⃣ Get all comments of this post
     const allComments = await Comments.find({ postId })
       .populate("userId")
       .lean();
 
-    // 3️⃣ Build comment map
+    // 4️⃣ Convert user profile S3 key → Signed URL
+    for (const comment of allComments) {
+      if (comment.userId?.profile) {
+        comment.userId.profile = await getFileUrl(
+          comment.userId.profile
+        );
+      }
+    }
+
+    // 5️⃣ Build comment map
     const commentMap = {};
-    allComments.forEach((c) => {
-      c.replies = [];
-      commentMap[c._id.toString()] = c;
+
+    allComments.forEach((comment) => {
+      comment.replies = [];
+
+      commentMap[comment._id.toString()] = comment;
     });
 
-    // 4️⃣ Build tree
+    // 6️⃣ Build comment tree
     const rootComments = [];
 
-    allComments.forEach((c) => {
-      if (c.parentComment) {
-        const parentId = c.parentComment.toString();
+    allComments.forEach((comment) => {
+      if (comment.parentComment) {
+        const parentId = comment.parentComment.toString();
+
         if (commentMap[parentId]) {
-          commentMap[parentId].replies.push(c);
+          commentMap[parentId].replies.push(comment);
         }
       } else {
-        rootComments.push(c);
+        rootComments.push(comment);
       }
     });
 
-    // 5️⃣ Attach comments to post
+    // 7️⃣ Attach comments to post
     post.comments = rootComments;
 
+    // 8️⃣ Send response
     return res.status(200).json({
       success: true,
       post,
