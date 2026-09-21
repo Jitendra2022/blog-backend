@@ -8,6 +8,7 @@ const getSinglePost = async (req, res) => {
 
     // 1️⃣ Get post
     const post = await Blog.findById(postId).lean();
+
     if (!post) {
       return res.status(404).json({
         success: false,
@@ -15,24 +16,41 @@ const getSinglePost = async (req, res) => {
       });
     }
 
-    // 2️⃣ Convert post S3 image key → Signed URL
+    // 2️⃣ Get all comments
+    // password ko response se remove kar diya
+    const allComments = await Comments.find({ postId })
+      .populate("userId", "-password")
+      .lean();
+
+    // 3️⃣ Convert post image S3 key → Signed URL
     if (post.image) {
       post.image = await getFileUrl(post.image);
     }
 
-    // 3️⃣ Get all comments of this post
-    const allComments = await Comments.find({ postId })
-      .populate("userId")
-      .lean();
-
     // 4️⃣ Convert user profile S3 key → Signed URL
-    for (const comment of allComments) {
-      if (comment.userId?.profile) {
-        comment.userId.profile = await getFileUrl(
-          comment.userId.profile
-        );
-      }
-    }
+    const profileCache = new Map();
+
+    await Promise.all(
+      allComments.map(async (comment) => {
+        const profileKey = comment.userId?.profile;
+
+        if (!profileKey) return;
+
+        // Same profile already converted
+        if (profileCache.has(profileKey)) {
+          comment.userId.profile = profileCache.get(profileKey);
+          return;
+        }
+
+        // Generate signed URL
+        const profileUrl = await getFileUrl(profileKey);
+
+        // Cache URL
+        profileCache.set(profileKey, profileUrl);
+
+        comment.userId.profile = profileUrl;
+      })
+    );
 
     // 5️⃣ Build comment map
     const commentMap = {};
@@ -67,7 +85,8 @@ const getSinglePost = async (req, res) => {
       post,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Get Single Post Error:", err);
+
     return res.status(500).json({
       success: false,
       message: "Something went wrong!",
